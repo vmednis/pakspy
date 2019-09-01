@@ -62,6 +62,12 @@ class PAKFile
   end
 
   ##
+  # Inserts a directory +dir+ recursively contents as their names
+  def insert_all(dir)
+    insert_all_helper(dir, "")
+  end
+
+  ##
   # Saves all the changes to +path+
   def save(path)
     tmp_path = "#{path}.tmp_"
@@ -131,6 +137,19 @@ class PAKFile
   # Returns a list of all the files as an array of strings
   def files_list
     @file_hash.values.map { |entry| entry.name }
+  end
+
+  def insert_all_helper(dir, prefix)
+    puts "DBG #{dir}  #{prefix}"
+    Dir.entries(dir).each do |entry|
+      unless entry == "." or entry == ".."
+        if File.directory? "#{dir}/#{entry}"
+          insert_all_helper("#{dir}/#{entry}", "#{prefix}#{entry}/")
+        else
+          insert("#{dir}/#{entry}", "#{prefix}#{entry}")
+        end
+      end
+    end
   end
 
   ##
@@ -212,5 +231,7 @@ end
 
 # Small demonstration
 file = PAKFile.new ARGV[0]
-file.insert "pakspy.rb", "pakspy.rb"
+file.insert_all "."
 file.save "test.pak"
+file = PAKFile.new "test.pak"
+file.extract_all "test"
