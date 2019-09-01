@@ -11,13 +11,13 @@ class PAKFile
       @pak_file = File.open path, "rb"
 
       header = Header.new @pak_file.read 12
+      puts "Warning: Might not be a real PAK" unless header.magic == "PACK"
       file_count = header.size / 64
 
       @pak_file.seek header.offset
       file_count.times do
         entry = FileEntryPAK.new self, @pak_file.read(64)
         file_add entry
-        p entry.name
       end
     end
   end
@@ -47,6 +47,66 @@ class PAKFile
     file.close
   end
 
+  ##
+  # Extracts all files in PAK to +dir+ directory
+  def extract_all(dir)
+    files_list.each do |file_name|
+      extract file_name, dir + "/" + file_name
+    end
+  end
+
+  ##
+  # Inserts a system file at +path+ as +name+
+  def insert(path, name)
+    file_add FileEntrySystem.new self, path, name
+  end
+
+  ##
+  # Saves all the changes to +path+
+  def save(path)
+    file = File.open path, "wb"
+    
+    file_entries = Array.new
+
+    # Will finish header later when we know where the file entries will be
+    file.write "PACK"
+    file.seek 12
+
+    # Insert all of the files
+    files_list.each do |name|
+      entry = file_find name
+
+      file_entry = Hash.new
+      file_entry[:name] = entry.name
+      file_entry[:offset] = file.pos
+
+      file.write entry.read
+
+      file_entry[:size] = file.pos - file_entry[:offset]
+      file_entries.push file_entry
+    end
+
+    # Now we know the rest of the info needed for the header
+    file_entry_pos = file.pos
+    file.seek 4
+    file.write [file_entry_pos, file_entries.length * 64].pack("VV")
+
+    # And finally add the file entries
+    file.seek file_entry_pos
+    file_entries.each do |file_entry|
+      file.write [file_entry[:name], file_entry[:offset], file_entry[:size]].pack("a56VV")
+    end
+    
+    # And close so we can open it again
+    file.close
+  end
+
+  ##
+  # Lists all files in PAK to an array
+  def list
+    files_list
+  end
+
   attr_reader :pak_file
 
   private
@@ -66,7 +126,7 @@ class PAKFile
   ##
   # Returns a list of all the files as an array of strings
   def files_list
-    @file_hash.values
+    @file_hash.values.map { |entry| entry.name }
   end
 
   ##
@@ -146,6 +206,9 @@ class PAKFile
   end
 end
 
+# Small demonstration
 file = PAKFile.new ARGV[0]
-file.extract("sound/weapons/guncock.wav", "sound/weapons/guncock.wav")
-
+file.insert "pakspy.rb", "pakspy.rb"
+file.save "test.pak"
+file = PAKFile.new "test.pak"
+file.extract_all "test"
