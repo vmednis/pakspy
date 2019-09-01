@@ -1,4 +1,5 @@
-require './PAKFile.rb'
+#!/usr/bin/env ruby
+require 'pakspy'
 
 def print_usage
   puts "Usage:"
