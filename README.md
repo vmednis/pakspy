@@ -1,6 +1,11 @@
 # pakspy
 Tool to manipulate Quake style PAK archives.
 
+Installation:
+```
+gem install pakspy
+```
+
 Usage:
 ```
 pakspy list <pak>
