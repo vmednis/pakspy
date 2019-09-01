@@ -37,6 +37,6 @@ puts "#{ARGV[0]} contains #{file_count} files:"
 file.seek header.offset
 file_count.times do 
   file_entry = PAKFileEntry.new file.read 64
-  file_size_kb = file_entry.size / 1000.0
-  puts "#{file_entry.name} #{file_size_kb}KB"
+  file_size_kib = (file_entry.size / 1024.0).round 2
+  puts "#{file_entry.name} #{file_size_kib} KiB"
 end
