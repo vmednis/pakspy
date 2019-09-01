@@ -140,7 +140,6 @@ class PAKFile
   end
 
   def insert_all_helper(dir, prefix)
-    puts "DBG #{dir}  #{prefix}"
     Dir.entries(dir).each do |entry|
       unless entry == "." or entry == ".."
         if File.directory? "#{dir}/#{entry}"
@@ -230,8 +229,9 @@ class PAKFile
 end
 
 # Small demonstration
-file = PAKFile.new ARGV[0]
+file = PAKFile.new
 file.insert_all "."
-file.save "test.pak"
-file = PAKFile.new "test.pak"
-file.extract_all "test"
+file.save "demo.pak"
+
+file = PAKFile.new "demo.pak"
+file.extract_all "demo"
