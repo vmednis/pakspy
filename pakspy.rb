@@ -64,7 +64,8 @@ class PAKFile
   ##
   # Saves all the changes to +path+
   def save(path)
-    file = File.open path, "wb"
+    tmp_path = "#{path}.tmp_"
+    file = File.open tmp_path, "wb"
     
     file_entries = Array.new
 
@@ -97,8 +98,11 @@ class PAKFile
       file.write [file_entry[:name], file_entry[:offset], file_entry[:size]].pack("a56VV")
     end
     
-    # And close so we can open it again
+    # close so we can open it again
     file.close
+
+    # And finally move it to the correct place
+    File.rename tmp_path, path
   end
 
   ##
@@ -210,5 +214,3 @@ end
 file = PAKFile.new ARGV[0]
 file.insert "pakspy.rb", "pakspy.rb"
 file.save "test.pak"
-file = PAKFile.new "test.pak"
-file.extract_all "test"
