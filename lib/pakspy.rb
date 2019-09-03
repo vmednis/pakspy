@@ -1,3 +1,9 @@
+
+if ENV["RUNNING_TESTS"].nil?
+  class FileTestable < File
+  end
+end
+
 ##
 # Class handles Quake style PAK files
 class PAKFile
@@ -8,7 +14,7 @@ class PAKFile
     @pak_file = nil
 
     unless path.nil?
-      @pak_file = File.open path, "rb"
+      @pak_file = FileTestable.open path, "rb"
 
       header = Header.new @pak_file.read 12
       puts "Warning: Might not be a real PAK" unless header.magic == "PACK"
@@ -34,14 +40,14 @@ class PAKFile
     
     # Create the necessary directories
     path_current = ""
-    File.dirname(path).split(/[\/\\]/).each do |dir|
+    FileTestable.dirname(path).split(/[\/\\]/).each do |dir|
       path_current += dir
-      Dir.mkdir path_current unless Dir.exists?(path_current)
+      Dir.mkdir path_current unless Dir.exist?(path_current)
       path_current += "/"
     end
 
     # Transfer contents
-    file = File.open path, "wb"
+    file = FileTestable.open path, "wb"
     file.write file_entry.read
 
     file.close
@@ -71,7 +77,7 @@ class PAKFile
   # Saves all the changes to +path+
   def save(path)
     tmp_path = "#{path}.tmp_"
-    file = File.open tmp_path, "wb"
+    file = FileTestable.open tmp_path, "wb"
     
     file_entries = Array.new
 
@@ -108,7 +114,7 @@ class PAKFile
     file.close
 
     # And finally move it to the correct place
-    File.rename tmp_path, path
+    FileTestable.rename tmp_path, path
   end
 
   ##
@@ -142,7 +148,7 @@ class PAKFile
   def insert_all_helper(dir, prefix)
     Dir.entries(dir).each do |entry|
       unless entry == "." or entry == ".."
-        if File.directory? "#{dir}/#{entry}"
+        if FileTestable.directory? "#{dir}/#{entry}"
           insert_all_helper("#{dir}/#{entry}", "#{prefix}#{entry}/")
         else
           insert("#{dir}/#{entry}", "#{prefix}#{entry}")
@@ -220,7 +226,7 @@ class PAKFile
     end
 
     def read
-      f = File.open @path, "rb"
+      f = FileTestable.open @path, "rb"
       data = f.read
       f.close
       data
